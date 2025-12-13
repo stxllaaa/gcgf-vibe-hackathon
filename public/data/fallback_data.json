@@ -1,0 +1,274 @@
+{
+  "climate_monitoring": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "수원시 기후변화 모니터링 센터",
+          "location": "수원시 팔달구",
+          "temperature": 23.5,
+          "humidity": 65,
+          "pm10": 35
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [127.0286, 37.2636]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "성남시 기후변화 모니터링 센터",
+          "location": "성남시 분당구",
+          "temperature": 24.2,
+          "humidity": 62,
+          "pm10": 42
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [127.1052, 37.3595]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "고양시 기후변화 모니터링 센터",
+          "location": "고양시 일산동구",
+          "temperature": 22.8,
+          "humidity": 68,
+          "pm10": 38
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [126.7729, 37.6584]
+        }
+      }
+    ]
+  },
+  "heat_wave": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "수원역 상업지구",
+          "risk_level": "high",
+          "max_temp": 38.5,
+          "area": "수원시 팔달구"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [127.0186, 37.2536],
+            [127.0386, 37.2536],
+            [127.0386, 37.2736],
+            [127.0186, 37.2736],
+            [127.0186, 37.2536]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "성남 판교 테크노밸리",
+          "risk_level": "medium",
+          "max_temp": 36.2,
+          "area": "성남시 분당구"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [127.0952, 37.3495],
+            [127.1152, 37.3495],
+            [127.1152, 37.3695],
+            [127.0952, 37.3695],
+            [127.0952, 37.3495]
+          ]]
+        }
+      }
+    ]
+  },
+  "flood_risk": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "황구지천 유역",
+          "risk_level": "high",
+          "flood_depth": "1.5m",
+          "area": "수원시"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [126.9886, 37.2436],
+            [127.0086, 37.2436],
+            [127.0086, 37.2636],
+            [126.9886, 37.2636],
+            [126.9886, 37.2436]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "탄천 하류 지역",
+          "risk_level": "medium",
+          "flood_depth": "0.8m",
+          "area": "성남시"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [127.0752, 37.3395],
+            [127.0952, 37.3395],
+            [127.0952, 37.3595],
+            [127.0752, 37.3595],
+            [127.0752, 37.3395]
+          ]]
+        }
+      }
+    ]
+  },
+  "green_space": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "광교호수공원",
+          "area_sqm": 2000000,
+          "type": "호수공원",
+          "location": "수원시 영통구"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [127.0486, 37.2736],
+            [127.0686, 37.2736],
+            [127.0686, 37.2936],
+            [127.0486, 37.2936],
+            [127.0486, 37.2736]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "율동공원",
+          "area_sqm": 1200000,
+          "type": "도시공원",
+          "location": "성남시 분당구"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [127.1152, 37.3695],
+            [127.1352, 37.3695],
+            [127.1352, 37.3895],
+            [127.1152, 37.3895],
+            [127.1152, 37.3695]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "일산호수공원",
+          "area_sqm": 3000000,
+          "type": "호수공원",
+          "location": "고양시 일산동구"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [126.7629, 37.6484],
+            [126.7829, 37.6484],
+            [126.7829, 37.6684],
+            [126.7629, 37.6684],
+            [126.7629, 37.6484]
+          ]]
+        }
+      }
+    ]
+  },
+  "emd_boundary": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "팔달구",
+          "sigungu": "수원시",
+          "code": "41111"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [127.0086, 37.2436],
+            [127.0486, 37.2436],
+            [127.0486, 37.2836],
+            [127.0086, 37.2836],
+            [127.0086, 37.2436]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "영통구",
+          "sigungu": "수원시",
+          "code": "41115"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [127.0486, 37.2436],
+            [127.0886, 37.2436],
+            [127.0886, 37.2836],
+            [127.0486, 37.2836],
+            [127.0486, 37.2436]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "분당구",
+          "sigungu": "성남시",
+          "code": "41135"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [127.0752, 37.3295],
+            [127.1352, 37.3295],
+            [127.1352, 37.3895],
+            [127.0752, 37.3895],
+            [127.0752, 37.3295]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "일산동구",
+          "sigungu": "고양시",
+          "code": "41285"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [126.7429, 37.6284],
+            [126.8029, 37.6284],
+            [126.8029, 37.6884],
+            [126.7429, 37.6884],
+            [126.7429, 37.6284]
+          ]]
+        }
+      }
+    ]
+  }
+}
