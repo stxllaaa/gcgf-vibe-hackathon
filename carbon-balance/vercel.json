@@ -1,0 +1,19 @@
+{
+  "rewrites": [
+    {
+      "source": "/wfs",
+      "destination": "https://climate.gg.go.kr/ols/api/geoserver/wfs"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    }
+  ]
+}

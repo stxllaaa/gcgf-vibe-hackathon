@@ -1,0 +1,137 @@
+{
+  "treeCarbon": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "sigun_cd": "41111",
+          "sigun_nm": "수원시",
+          "fbctn_yr": "2023",
+          "cbn_strgat": 1250.5,
+          "sqmt1_cbn_strgat": 0.025,
+          "tree_cnt": 15000,
+          "whol_bioms": 2500.0,
+          "biotop_area": 50000
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[127.0, 37.25], [127.05, 37.25], [127.05, 37.3], [127.0, 37.3], [127.0, 37.25]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "sigun_cd": "41131",
+          "sigun_nm": "성남시",
+          "fbctn_yr": "2023",
+          "cbn_strgat": 980.3,
+          "sqmt1_cbn_strgat": 0.022,
+          "tree_cnt": 12000,
+          "whol_bioms": 1960.0,
+          "biotop_area": 44500
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[127.1, 37.4], [127.15, 37.4], [127.15, 37.45], [127.1, 37.45], [127.1, 37.4]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "sigun_cd": "41171",
+          "sigun_nm": "안양시",
+          "fbctn_yr": "2023",
+          "cbn_strgat": 750.2,
+          "sqmt1_cbn_strgat": 0.020,
+          "tree_cnt": 9500,
+          "whol_bioms": 1500.0,
+          "biotop_area": 37500
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[126.9, 37.35], [126.95, 37.35], [126.95, 37.4], [126.9, 37.4], [126.9, 37.35]]]
+        }
+      }
+    ]
+  },
+  "carbonAbsorption": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "sigun_cd": "41111",
+          "sigun_nm": "수원시",
+          "sqmt1_npp": 0.015,
+          "biotop_whol_npp": 320.5
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[127.0, 37.25], [127.05, 37.25], [127.05, 37.3], [127.0, 37.3], [127.0, 37.25]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "sigun_cd": "41131",
+          "sigun_nm": "성남시",
+          "sqmt1_npp": 0.012,
+          "biotop_whol_npp": 280.3
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[127.1, 37.4], [127.15, 37.4], [127.15, 37.45], [127.1, 37.45], [127.1, 37.4]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "sigun_cd": "41171",
+          "sigun_nm": "안양시",
+          "sqmt1_npp": 0.010,
+          "biotop_whol_npp": 220.1
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[126.9, 37.35], [126.95, 37.35], [126.95, 37.4], [126.9, 37.4], [126.9, 37.35]]]
+        }
+      }
+    ]
+  },
+  "building": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "tfar": 150000
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[127.02, 37.27], [127.03, 37.27], [127.03, 37.28], [127.02, 37.28], [127.02, 37.27]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "tfar": 120000
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[127.12, 37.42], [127.13, 37.42], [127.13, 37.43], [127.12, 37.43], [127.12, 37.42]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "tfar": 80000
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[126.92, 37.37], [126.93, 37.37], [126.93, 37.38], [126.92, 37.38], [126.92, 37.37]]]
+        }
+      }
+    ]
+  }
+}
