@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-const WFS_URL = import.meta.env.VITE_WFS_URL;
-const API_KEY = import.meta.env.VITE_API_KEY;
+// API 설정 - 직접 입력
+const WFS_URL = 'https://climate.gg.go.kr/ols/api/geoserver/wfs';
+const API_KEY = '4c58df36-82b2-40b2-b360-6450cca44b1e';
 
 /**
  * Fetch WFS data from Gyeonggi-do Climate API
