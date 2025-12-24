@@ -14,17 +14,39 @@ function Sidebar({ layerData, activeLayer, onLayerChange }) {
 
   // Calculate statistics for active layer
   const statistics = useMemo(() => {
+    console.log('📊 Sidebar: Calculating statistics for layer:', activeLayer);
+    console.log('📦 Sidebar: Layer data:', {
+      activeLayer,
+      hasLayerData: !!layerData[activeLayer],
+      hasFeatures: !!layerData[activeLayer]?.features,
+      featureCount: layerData[activeLayer]?.features?.length || 0
+    });
+
     if (!activeLayer || !layerData[activeLayer] || !layerData[activeLayer].features) {
+      console.warn('⚠️  Sidebar: No data available for statistics');
       return null;
     }
 
     const layer = layers.find(l => l.id === activeLayer);
-    if (!layer) return null;
+    if (!layer) {
+      console.warn('⚠️  Sidebar: Layer config not found for:', activeLayer);
+      return null;
+    }
 
     const features = layerData[activeLayer].features;
+    console.log(`🔍 Sidebar: Processing ${features.length} features`);
+    console.log('📍 Sidebar: Sample feature properties:', features[0]?.properties);
+    console.log(`🔑 Sidebar: Looking for field: ${layer.field}`);
+
     const total = calculateTotal(features, layer.field);
     const regionData = aggregateByRegion(features, layer.field);
     const topRegions = getTopRegions(regionData, 5);
+
+    console.log('✅ Sidebar: Statistics calculated:', {
+      total,
+      regionCount: Object.keys(regionData).length,
+      topRegions: topRegions.map(r => ({ name: r.name, total: r.total }))
+    });
 
     return {
       total,

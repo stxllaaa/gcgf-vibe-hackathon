@@ -21,18 +21,34 @@ function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log('🎬 App: Starting data load...');
         setLoading(true);
         setError(null);
+
         const data = await fetchAllLayers();
+
+        console.log('📦 App: Received layer data:', {
+          soil: data.soil?.features?.length || 0,
+          plant: data.plant?.features?.length || 0,
+          absorption: data.absorption?.features?.length || 0,
+          emission: data.emission?.features?.length || 0
+        });
+
         setLayerData(data);
 
         // Set first available layer as active
         const firstLayer = Object.keys(data).find(key => data[key]?.features?.length > 0);
+        console.log(`🎯 App: Setting active layer to: ${firstLayer || 'none'}`);
+
         if (firstLayer) {
           setActiveLayer(firstLayer);
+        } else {
+          console.warn('⚠️  App: No layers with features found!');
         }
+
+        console.log('✅ App: Data loaded successfully');
       } catch (err) {
-        console.error('Error loading data:', err);
+        console.error('❌ App: Error loading data:', err);
         setError('데이터를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도해주세요.');
       } finally {
         setLoading(false);

@@ -179,6 +179,85 @@ matchFeaturesToBoundaries(wfsData, boundaries)      // WFS 데이터와 경계 �
 - API 키가 필요함
 - 인터넷 연결 필수
 
+## 🔍 디버깅 가이드
+
+### 데이터 로딩 확인
+
+앱을 실행하면 브라우저 개발자 도구 콘솔에서 다음 로그를 확인할 수 있습니다:
+
+#### 1. API 데이터 로딩 확인
+```
+🚀 Starting to fetch all WFS layers...
+🔄 Fetching WFS data for: spggcee:soil_cbn_strgat
+📍 API URL: https://climate.gg.go.kr/ols/api/geoserver/wfs
+🔑 API Key present: Yes
+📤 Request params: {...}
+✅ Response received for spggcee:soil_cbn_strgat
+✅ Successfully loaded X features
+```
+
+#### 2. 경계 데이터 로딩 확인 (CSV)
+```
+🗺️  Starting to load boundary data from CSV...
+📄 CSV path: /data/gyonggi_dong_geo_df.csv
+✅ CSV file loaded, size: X bytes
+📊 CSV parsed: X rows
+✅ Successfully loaded X boundary features
+```
+
+#### 3. 앱 데이터 통합 확인
+```
+🎬 App: Starting data load...
+📦 App: Received layer data: {soil: X, plant: Y, absorption: Z, emission: W}
+🎯 App: Setting active layer to: soil
+✅ App: Data loaded successfully
+```
+
+#### 4. Sidebar 통계 계산 확인
+```
+📊 Sidebar: Calculating statistics for layer: soil
+🔍 Sidebar: Processing X features
+✅ Sidebar: Statistics calculated: {total: X, regionCount: Y}
+```
+
+### 문제 해결
+
+#### 데이터가 표시되지 않는 경우
+
+1. **콘솔 확인**: 브라우저 개발자 도구(F12)를 열고 Console 탭에서 에러 메시지 확인
+2. **API 키 확인**: `.env` 파일의 `VITE_API_KEY`가 올바른지 확인
+3. **네트워크 확인**: Network 탭에서 API 요청이 성공했는지 확인 (200 OK)
+4. **CSV 파일 확인**: `/data/gyonggi_dong_geo_df.csv` 파일이 존재하는지 확인
+
+#### 일반적인 문제
+
+**문제**: "데이터를 불러오는 중..."에서 멈춤
+- **해결**: API 키가 올바른지 확인, 인터넷 연결 확인
+- 콘솔에서 `❌` 표시된 에러 메시지 확인
+
+**문제**: 지도가 표시되지 않음
+- **해결**: Leaflet CSS가 로드되었는지 확인
+- 콘솔에서 "Failed to load resource" 에러 확인
+
+**문제**: 통계가 0으로 표시됨
+- **해결**:
+  - 콘솔에서 "Sample feature properties" 확인
+  - 필드명이 일치하는지 확인 (cbn_strgat, cbn_abpvl, ghg_emsvl)
+  - API 응답에 실제 데이터가 있는지 확인
+
+**문제**: CSV 로딩 실패
+- **해결**:
+  - `/data/gyonggi_dong_geo_df.csv` 파일 경로 확인
+  - 파일이 public 디렉토리에 있지 않고 data 디렉토리에 있는지 확인
+  - Vite 설정에서 public 디렉토리 설정 확인
+
+### 개발자 도구 사용법
+
+1. **Chrome/Edge**: F12 또는 Ctrl+Shift+I (Mac: Cmd+Option+I)
+2. **Console 탭**: 로그 메시지 확인
+3. **Network 탭**: API 요청/응답 확인
+4. **필터 사용**: 콘솔에서 🔄, ✅, ❌ 이모지로 필터링 가능
+
 ## 📄 라이선스
 
 MIT
