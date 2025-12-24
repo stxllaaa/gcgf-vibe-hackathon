@@ -18,6 +18,10 @@ function App() {
     boundary: true,  // 경계 레이어는 기본으로 켜짐
     data: null       // 데이터 레이어
   });
+  const [selectedRegion, setSelectedRegion] = useState({
+    signgu: null,    // 선택된 시군구
+    admdong: null    // 선택된 읍면동
+  });
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -78,6 +82,11 @@ function App() {
     setSelectedFeature(null); // Clear selection when changing layers
   };
 
+  const handleRegionChange = (signgu, admdong) => {
+    setSelectedRegion({ signgu, admdong });
+    setSelectedFeature(null);
+  };
+
   const handleFeatureClick = (feature, layerType) => {
     setSelectedFeature({ feature, layerType });
   };
@@ -117,13 +126,16 @@ function App() {
         layerData={layerData}
         boundaryData={boundaryData}
         activeLayers={activeLayers}
+        selectedRegion={selectedRegion}
         onLayerChange={handleLayerChange}
+        onRegionChange={handleRegionChange}
       />
       <div className="main-content">
         <Map
           layerData={layerData}
           boundaryData={boundaryData}
           activeLayers={activeLayers}
+          selectedRegion={selectedRegion}
           onFeatureClick={handleFeatureClick}
         />
         {selectedFeature && (

@@ -17,10 +17,21 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 // Component to fit bounds when data changes
-function FitBounds({ data }) {
+function FitBounds({ data, selectedBoundary }) {
   const map = useMap();
 
   useEffect(() => {
+    // 선택된 읍면동이 있으면 그 경계로 줌
+    if (selectedBoundary && selectedBoundary.geometry) {
+      const geoJsonLayer = L.geoJSON(selectedBoundary);
+      const bounds = geoJsonLayer.getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [30, 30] });
+        return;
+      }
+    }
+
+    // 그렇지 않으면 전체 데이터로 줌
     if (data && data.features && data.features.length > 0) {
       const geoJsonLayer = L.geoJSON(data);
       const bounds = geoJsonLayer.getBounds();
@@ -28,7 +39,7 @@ function FitBounds({ data }) {
         map.fitBounds(bounds, { padding: [50, 50] });
       }
     }
-  }, [data, map]);
+  }, [data, selectedBoundary, map]);
 
   return null;
 }
@@ -36,18 +47,28 @@ function FitBounds({ data }) {
 /**
  * Map component with Leaflet integration
  */
-function Map({ layerData, boundaryData, activeLayers, onFeatureClick }) {
+function Map({ layerData, boundaryData, activeLayers, selectedRegion, onFeatureClick }) {
   const center = [37.4138, 127.5183]; // Gyeonggi-do center
   const zoom = 9;
 
-  // 경계 스타일
-  const getBoundaryStyle = () => {
+  // 선택된 읍면동 경계 찾기
+  const selectedBoundary = boundaryData?.features?.find(
+    feature => feature.properties.admdong_nm === selectedRegion.admdong &&
+               feature.properties.signgu_nm === selectedRegion.signgu
+  );
+
+  // 경계 스타일 (선택된 읍면동은 강조)
+  const getBoundaryStyle = (feature) => {
+    const isSelected = selectedRegion.admdong &&
+                      feature.properties.admdong_nm === selectedRegion.admdong &&
+                      feature.properties.signgu_nm === selectedRegion.signgu;
+
     return {
-      fillColor: 'transparent',
-      fillOpacity: 0,
-      weight: 2,
-      opacity: 0.8,
-      color: '#2d6a4f'  // 경기도 green
+      fillColor: isSelected ? '#74c69d' : 'transparent',
+      fillOpacity: isSelected ? 0.2 : 0,
+      weight: isSelected ? 3 : 2,
+      opacity: isSelected ? 1 : 0.8,
+      color: isSelected ? '#1b4332' : '#2d6a4f'
     };
   };
 
@@ -154,12 +175,12 @@ function Map({ layerData, boundaryData, activeLayers, onFeatureClick }) {
         {activeLayers.boundary && boundaryData && boundaryData.features && (
           <>
             <GeoJSON
-              key={`boundary-${boundaryData.features.length}`}
+              key={`boundary-${boundaryData.features.length}-${selectedRegion.admdong || 'all'}`}
               data={boundaryData}
-              style={getBoundaryStyle}
+              style={(feature) => getBoundaryStyle(feature)}
               onEachFeature={onEachBoundary}
             />
-            <FitBounds data={boundaryData} />
+            <FitBounds data={boundaryData} selectedBoundary={selectedBoundary} />
           </>
         )}
 

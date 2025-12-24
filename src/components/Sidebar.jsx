@@ -4,7 +4,7 @@ import { calculateTotal, aggregateByRegion, getTopRegions, formatNumber } from '
 /**
  * Sidebar component with layer selection and statistics
  */
-function Sidebar({ layerData, boundaryData, activeLayers, onLayerChange }) {
+function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLayerChange, onRegionChange }) {
   const layers = [
     { id: 'soil', name: '토양 탄소 저장', field: 'cbn_strgat', unit: 'tC' },
     { id: 'plant', name: '수목 탄소 저장', field: 'cbn_strgat', unit: 'tC' },
@@ -12,19 +12,73 @@ function Sidebar({ layerData, boundaryData, activeLayers, onLayerChange }) {
     { id: 'emission', name: '건물 배출량', field: 'ghg_emsvl', unit: 'tCO2eq/year' }
   ];
 
-  // Calculate statistics for active layer
+  // 시군구 목록 추출 (중복 제거)
+  const signguList = useMemo(() => {
+    if (!boundaryData || !boundaryData.features) return [];
+    const signguSet = new Set();
+    boundaryData.features.forEach(feature => {
+      if (feature.properties.signgu_nm) {
+        signguSet.add(feature.properties.signgu_nm);
+      }
+    });
+    return Array.from(signguSet).sort();
+  }, [boundaryData]);
+
+  // 선택된 시군구의 읍면동 목록
+  const admdongList = useMemo(() => {
+    if (!boundaryData || !boundaryData.features || !selectedRegion.signgu) return [];
+    return boundaryData.features
+      .filter(feature => feature.properties.signgu_nm === selectedRegion.signgu)
+      .map(feature => feature.properties.admdong_nm)
+      .sort();
+  }, [boundaryData, selectedRegion.signgu]);
+
+  // 선택된 읍면동의 경계 feature
+  const selectedBoundary = useMemo(() => {
+    if (!boundaryData || !boundaryData.features || !selectedRegion.admdong) return null;
+    return boundaryData.features.find(
+      feature => feature.properties.admdong_nm === selectedRegion.admdong &&
+                 feature.properties.signgu_nm === selectedRegion.signgu
+    );
+  }, [boundaryData, selectedRegion]);
+
+  // 선택된 영역 내의 데이터 필터링
+  const filteredLayerData = useMemo(() => {
+    if (!selectedRegion.admdong || !activeLayers.data) {
+      return layerData;
+    }
+
+    const filtered = {};
+    Object.keys(layerData).forEach(key => {
+      if (!layerData[key] || !layerData[key].features) {
+        filtered[key] = layerData[key];
+        return;
+      }
+
+      // 선택된 읍면동과 같은 시군구의 데이터만 필터링
+      const filteredFeatures = layerData[key].features.filter(feature => {
+        const featureSgg = feature.properties.sgg_nm || feature.properties.SGG_NM;
+        // 시군구명으로 먼저 필터링 (읍면동 정보가 없을 수 있으므로)
+        return featureSgg && featureSgg.includes(selectedRegion.signgu);
+      });
+
+      filtered[key] = {
+        ...layerData[key],
+        features: filteredFeatures
+      };
+    });
+
+    return filtered;
+  }, [layerData, selectedRegion, activeLayers.data]);
+
+  // Calculate statistics for active layer (필터링된 데이터 사용)
   const statistics = useMemo(() => {
     const activeDataLayer = activeLayers?.data;
 
     console.log('📊 Sidebar: Calculating statistics for layer:', activeDataLayer);
-    console.log('📦 Sidebar: Layer data:', {
-      activeDataLayer,
-      hasLayerData: !!layerData[activeDataLayer],
-      hasFeatures: !!layerData[activeDataLayer]?.features,
-      featureCount: layerData[activeDataLayer]?.features?.length || 0
-    });
+    console.log('📍 Sidebar: Selected region:', selectedRegion);
 
-    if (!activeDataLayer || !layerData[activeDataLayer] || !layerData[activeDataLayer].features) {
+    if (!activeDataLayer || !filteredLayerData[activeDataLayer] || !filteredLayerData[activeDataLayer].features) {
       console.warn('⚠️  Sidebar: No data available for statistics');
       return null;
     }
@@ -35,10 +89,9 @@ function Sidebar({ layerData, boundaryData, activeLayers, onLayerChange }) {
       return null;
     }
 
-    const features = layerData[activeDataLayer].features;
-    console.log(`🔍 Sidebar: Processing ${features.length} features`);
+    const features = filteredLayerData[activeDataLayer].features;
+    console.log(`🔍 Sidebar: Processing ${features.length} features (filtered)`);
     console.log('📍 Sidebar: Sample feature properties:', features[0]?.properties);
-    console.log(`🔑 Sidebar: Looking for field: ${layer.field}`);
 
     const total = calculateTotal(features, layer.field);
     const regionData = aggregateByRegion(features, layer.field);
@@ -47,7 +100,8 @@ function Sidebar({ layerData, boundaryData, activeLayers, onLayerChange }) {
     console.log('✅ Sidebar: Statistics calculated:', {
       total,
       regionCount: Object.keys(regionData).length,
-      topRegions: topRegions.map(r => ({ name: r.name, total: r.total }))
+      topRegions: topRegions.map(r => ({ name: r.name, total: r.total })),
+      selectedArea: selectedRegion.admdong || '전체'
     });
 
     return {
@@ -56,7 +110,7 @@ function Sidebar({ layerData, boundaryData, activeLayers, onLayerChange }) {
       topRegions,
       featureCount: features.length
     };
-  }, [activeLayers?.data, layerData]);
+  }, [activeLayers?.data, filteredLayerData, selectedRegion]);
 
   return (
     <div className="sidebar">
@@ -66,7 +120,43 @@ function Sidebar({ layerData, boundaryData, activeLayers, onLayerChange }) {
       </div>
 
       <div className="layer-selection">
-        <h2>레이어 선택</h2>
+        <h2>지역 선택</h2>
+
+        {/* 시군구 드롭다운 */}
+        <div className="region-select">
+          <label htmlFor="signgu-select">시/군/구</label>
+          <select
+            id="signgu-select"
+            value={selectedRegion.signgu || ''}
+            onChange={(e) => onRegionChange(e.target.value, null)}
+            className="select-dropdown"
+          >
+            <option value="">전체</option>
+            {signguList.map(signgu => (
+              <option key={signgu} value={signgu}>{signgu}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* 읍면동 드롭다운 */}
+        {selectedRegion.signgu && (
+          <div className="region-select">
+            <label htmlFor="admdong-select">읍/면/동</label>
+            <select
+              id="admdong-select"
+              value={selectedRegion.admdong || ''}
+              onChange={(e) => onRegionChange(selectedRegion.signgu, e.target.value)}
+              className="select-dropdown"
+            >
+              <option value="">전체</option>
+              {admdongList.map(admdong => (
+                <option key={admdong} value={admdong}>{admdong}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <h2 style={{ marginTop: '20px' }}>레이어 선택</h2>
 
         {/* 읍면동 경계 토글 */}
         <div className="boundary-toggle">
@@ -109,14 +199,22 @@ function Sidebar({ layerData, boundaryData, activeLayers, onLayerChange }) {
         <div className="statistics">
           <h2>통계</h2>
 
+          {selectedRegion.admdong && (
+            <div className="selected-region-info">
+              <strong>📍 {selectedRegion.admdong}</strong> ({selectedRegion.signgu})
+            </div>
+          )}
+
           <div className="stat-card total">
-            <div className="stat-label">총 {layers.find(l => l.id === activeLayers?.data)?.name}</div>
+            <div className="stat-label">
+              {selectedRegion.admdong ? '' : '총 '}{layers.find(l => l.id === activeLayers?.data)?.name}
+            </div>
             <div className="stat-value">
               {formatNumber(statistics.total, 0)}
               <span className="stat-unit"> {statistics.unit}</span>
             </div>
             <div className="stat-meta">
-              총 {statistics.featureCount}개 지역
+              {selectedRegion.admdong ? '선택 지역' : `총 ${statistics.featureCount}개 지역`}
             </div>
           </div>
 
