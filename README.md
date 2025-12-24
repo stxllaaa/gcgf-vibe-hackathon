@@ -17,7 +17,8 @@ carbon-balance/
 │   │   └── DetailPanel.jsx      # 클릭 시 상세정보 패널
 │   ├── utils/
 │   │   ├── api.js               # WFS API 통신
-│   │   └── calculations.js      # 데이터 계산 유틸리티
+│   │   ├── calculations.js      # 데이터 계산 유틸리티
+│   │   └── geoDataLoader.js     # CSV 지오데이터 로드
 │   ├── App.jsx                  # 메인 앱 컴포넌트
 │   ├── App.css                  # 앱 스타일
 │   ├── main.jsx                 # 엔트리 포인트
@@ -147,6 +148,14 @@ calculateTotal(features, valueField)                // 총량 계산
 formatNumber(num, decimals=2)                       // 숫자 포맷팅
 ```
 
+### geoDataLoader.js
+```javascript
+loadGyeonggiDongBoundaries()                       // CSV에서 읍면동 경계 데이터 로드
+simplifyGeometry(geometry, tolerance)               // 폴리곤 좌표 간소화
+getBounds(geoJSON)                                  // GeoJSON 경계 박스 계산
+matchFeaturesToBoundaries(wfsData, boundaries)      // WFS 데이터와 경계 매칭
+```
+
 ## 🎨 디자인
 
 - **색상 테마**: Green 계열 (환경/탄소 테마)
@@ -161,6 +170,8 @@ formatNumber(num, decimals=2)                       // 숫자 포맷팅
 - Leaflet: ^1.9.4
 - React-Leaflet: ^4.2.1
 - Axios: ^1.6.2
+- PapaParse: ^5.4.1
+- Wellknown: ^0.5.0
 - Vite: ^5.0.8
 
 ### 알려진 제한사항
