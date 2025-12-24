@@ -3,6 +3,7 @@ import Map from './components/Map';
 import Sidebar from './components/Sidebar';
 import DetailPanel from './components/DetailPanel';
 import { fetchAllLayers } from './utils/api';
+import { loadGyeonggiDongBoundaries } from './utils/geoDataLoader';
 import './App.css';
 
 function App() {
@@ -12,7 +13,11 @@ function App() {
     absorption: null,
     emission: null
   });
-  const [activeLayer, setActiveLayer] = useState(null);
+  const [boundaryData, setBoundaryData] = useState(null);
+  const [activeLayers, setActiveLayers] = useState({
+    boundary: true,  // 경계 레이어는 기본으로 켜짐
+    data: null       // 데이터 레이어
+  });
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,23 +30,29 @@ function App() {
         setLoading(true);
         setError(null);
 
-        const data = await fetchAllLayers();
+        // 동시에 로드
+        const [data, boundaries] = await Promise.all([
+          fetchAllLayers(),
+          loadGyeonggiDongBoundaries()
+        ]);
 
         console.log('📦 App: Received layer data:', {
           soil: data.soil?.features?.length || 0,
           plant: data.plant?.features?.length || 0,
           absorption: data.absorption?.features?.length || 0,
-          emission: data.emission?.features?.length || 0
+          emission: data.emission?.features?.length || 0,
+          boundaries: boundaries?.features?.length || 0
         });
 
         setLayerData(data);
+        setBoundaryData(boundaries);
 
         // Set first available layer as active
         const firstLayer = Object.keys(data).find(key => data[key]?.features?.length > 0);
         console.log(`🎯 App: Setting active layer to: ${firstLayer || 'none'}`);
 
         if (firstLayer) {
-          setActiveLayer(firstLayer);
+          setActiveLayers({ boundary: true, data: firstLayer });
         } else {
           console.warn('⚠️  App: No layers with features found!');
         }
@@ -59,7 +70,11 @@ function App() {
   }, []);
 
   const handleLayerChange = (layerId) => {
-    setActiveLayer(layerId);
+    if (layerId === 'boundary') {
+      setActiveLayers(prev => ({ ...prev, boundary: !prev.boundary }));
+    } else {
+      setActiveLayers(prev => ({ ...prev, data: layerId }));
+    }
     setSelectedFeature(null); // Clear selection when changing layers
   };
 
@@ -100,13 +115,15 @@ function App() {
     <div className="app">
       <Sidebar
         layerData={layerData}
-        activeLayer={activeLayer}
+        boundaryData={boundaryData}
+        activeLayers={activeLayers}
         onLayerChange={handleLayerChange}
       />
       <div className="main-content">
         <Map
           layerData={layerData}
-          activeLayer={activeLayer}
+          boundaryData={boundaryData}
+          activeLayers={activeLayers}
           onFeatureClick={handleFeatureClick}
         />
         {selectedFeature && (

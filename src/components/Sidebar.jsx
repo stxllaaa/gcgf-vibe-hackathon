@@ -4,7 +4,7 @@ import { calculateTotal, aggregateByRegion, getTopRegions, formatNumber } from '
 /**
  * Sidebar component with layer selection and statistics
  */
-function Sidebar({ layerData, activeLayer, onLayerChange }) {
+function Sidebar({ layerData, boundaryData, activeLayers, onLayerChange }) {
   const layers = [
     { id: 'soil', name: '토양 탄소 저장', field: 'cbn_strgat', unit: 'tC' },
     { id: 'plant', name: '수목 탄소 저장', field: 'cbn_strgat', unit: 'tC' },
@@ -14,26 +14,28 @@ function Sidebar({ layerData, activeLayer, onLayerChange }) {
 
   // Calculate statistics for active layer
   const statistics = useMemo(() => {
-    console.log('📊 Sidebar: Calculating statistics for layer:', activeLayer);
+    const activeDataLayer = activeLayers?.data;
+
+    console.log('📊 Sidebar: Calculating statistics for layer:', activeDataLayer);
     console.log('📦 Sidebar: Layer data:', {
-      activeLayer,
-      hasLayerData: !!layerData[activeLayer],
-      hasFeatures: !!layerData[activeLayer]?.features,
-      featureCount: layerData[activeLayer]?.features?.length || 0
+      activeDataLayer,
+      hasLayerData: !!layerData[activeDataLayer],
+      hasFeatures: !!layerData[activeDataLayer]?.features,
+      featureCount: layerData[activeDataLayer]?.features?.length || 0
     });
 
-    if (!activeLayer || !layerData[activeLayer] || !layerData[activeLayer].features) {
+    if (!activeDataLayer || !layerData[activeDataLayer] || !layerData[activeDataLayer].features) {
       console.warn('⚠️  Sidebar: No data available for statistics');
       return null;
     }
 
-    const layer = layers.find(l => l.id === activeLayer);
+    const layer = layers.find(l => l.id === activeDataLayer);
     if (!layer) {
-      console.warn('⚠️  Sidebar: Layer config not found for:', activeLayer);
+      console.warn('⚠️  Sidebar: Layer config not found for:', activeDataLayer);
       return null;
     }
 
-    const features = layerData[activeLayer].features;
+    const features = layerData[activeDataLayer].features;
     console.log(`🔍 Sidebar: Processing ${features.length} features`);
     console.log('📍 Sidebar: Sample feature properties:', features[0]?.properties);
     console.log(`🔑 Sidebar: Looking for field: ${layer.field}`);
@@ -54,7 +56,7 @@ function Sidebar({ layerData, activeLayer, onLayerChange }) {
       topRegions,
       featureCount: features.length
     };
-  }, [activeLayer, layerData]);
+  }, [activeLayers?.data, layerData]);
 
   return (
     <div className="sidebar">
@@ -65,11 +67,31 @@ function Sidebar({ layerData, activeLayer, onLayerChange }) {
 
       <div className="layer-selection">
         <h2>레이어 선택</h2>
+
+        {/* 읍면동 경계 토글 */}
+        <div className="boundary-toggle">
+          <button
+            className={`layer-button ${activeLayers?.boundary ? 'active' : ''}`}
+            onClick={() => onLayerChange('boundary')}
+          >
+            <span className="layer-name">📍 읍면동 경계</span>
+            {boundaryData && (
+              <span className="layer-count">
+                ({boundaryData.features?.length || 0})
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* 데이터 레이어 선택 */}
+        <h3 style={{ fontSize: '14px', marginTop: '16px', marginBottom: '8px', opacity: 0.8 }}>
+          탄소 데이터
+        </h3>
         <div className="layer-buttons">
           {layers.map(layer => (
             <button
               key={layer.id}
-              className={`layer-button ${activeLayer === layer.id ? 'active' : ''}`}
+              className={`layer-button ${activeLayers?.data === layer.id ? 'active' : ''}`}
               onClick={() => onLayerChange(layer.id)}
             >
               <span className="layer-name">{layer.name}</span>
@@ -88,7 +110,7 @@ function Sidebar({ layerData, activeLayer, onLayerChange }) {
           <h2>통계</h2>
 
           <div className="stat-card total">
-            <div className="stat-label">총 {layers.find(l => l.id === activeLayer)?.name}</div>
+            <div className="stat-label">총 {layers.find(l => l.id === activeLayers?.data)?.name}</div>
             <div className="stat-value">
               {formatNumber(statistics.total, 0)}
               <span className="stat-unit"> {statistics.unit}</span>
@@ -117,9 +139,9 @@ function Sidebar({ layerData, activeLayer, onLayerChange }) {
         </div>
       )}
 
-      {!activeLayer && (
+      {!activeLayers?.data && (
         <div className="empty-state">
-          <p>레이어를 선택하여 데이터를 확인하세요</p>
+          <p>데이터 레이어를 선택하여 통계를 확인하세요</p>
         </div>
       )}
 
