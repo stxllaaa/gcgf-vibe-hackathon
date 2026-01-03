@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { LAYER_CONFIG } from '../utils/api';
 import { calculateTotal, aggregateByRegion, getTopRegions, formatNumber } from '../utils/calculations';
 
 /**
@@ -6,10 +7,10 @@ import { calculateTotal, aggregateByRegion, getTopRegions, formatNumber } from '
  */
 function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLayerChange, onRegionChange }) {
   const layers = [
-    { id: 'soil', name: '토양 탄소 저장', field: 'cbn_strgat', unit: 'tC' },
-    { id: 'plant', name: '수목 탄소 저장', field: 'cbn_strgat', unit: 'tC' },
-    { id: 'absorption', name: '탄소 흡수량', field: 'cbn_abpvl', unit: 'tC/year' },
-    { id: 'emission', name: '건물 배출량', field: 'ghg_emsvl', unit: 'tCO2eq/year' }
+    { id: 'soil', name: '토양 탄소 저장', field: LAYER_CONFIG.soil.valueField, unit: LAYER_CONFIG.soil.unit },
+    { id: 'plant', name: '수목 탄소 저장', field: LAYER_CONFIG.plant.valueField, unit: LAYER_CONFIG.plant.unit },
+    { id: 'absorption', name: '탄소 흡수량', field: LAYER_CONFIG.absorption.valueField, unit: LAYER_CONFIG.absorption.unit },
+    { id: 'emission', name: '온실가스 배출량', field: LAYER_CONFIG.emission.valueField, unit: LAYER_CONFIG.emission.unit }
   ];
 
   // 시군구 목록 추출 (중복 제거)
@@ -24,27 +25,17 @@ function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLaye
     return Array.from(signguSet).sort();
   }, [boundaryData]);
 
-  // 선택된 시군구의 읍면동 목록
-  const admdongList = useMemo(() => {
-    if (!boundaryData || !boundaryData.features || !selectedRegion.signgu) return [];
-    return boundaryData.features
-      .filter(feature => feature.properties.signgu_nm === selectedRegion.signgu)
-      .map(feature => feature.properties.admdong_nm)
-      .sort();
-  }, [boundaryData, selectedRegion.signgu]);
-
-  // 선택된 읍면동의 경계 feature
+  // 선택된 시군구의 경계 feature
   const selectedBoundary = useMemo(() => {
-    if (!boundaryData || !boundaryData.features || !selectedRegion.admdong) return null;
+    if (!boundaryData || !boundaryData.features || !selectedRegion.signgu) return null;
     return boundaryData.features.find(
-      feature => feature.properties.admdong_nm === selectedRegion.admdong &&
-                 feature.properties.signgu_nm === selectedRegion.signgu
+      feature => feature.properties.signgu_nm === selectedRegion.signgu
     );
   }, [boundaryData, selectedRegion]);
 
   // 선택된 영역 내의 데이터 필터링
   const filteredLayerData = useMemo(() => {
-    if (!selectedRegion.admdong || !activeLayers.data) {
+    if (!selectedRegion.signgu || !activeLayers.data) {
       return layerData;
     }
 
@@ -55,11 +46,10 @@ function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLaye
         return;
       }
 
-      // 선택된 읍면동과 같은 시군구의 데이터만 필터링
+      // 선택된 시군구의 데이터만 필터링
       const filteredFeatures = layerData[key].features.filter(feature => {
-        const featureSgg = feature.properties.sgg_nm || feature.properties.SGG_NM;
-        // 시군구명으로 먼저 필터링 (읍면동 정보가 없을 수 있으므로)
-        return featureSgg && featureSgg.includes(selectedRegion.signgu);
+        const featureSgg = feature.properties.signgu_nm || feature.properties.sgg_nm || feature.properties.SGG_NM;
+        return featureSgg === selectedRegion.signgu;
       });
 
       filtered[key] = {
@@ -71,7 +61,7 @@ function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLaye
     return filtered;
   }, [layerData, selectedRegion, activeLayers.data]);
 
-  // Calculate statistics for active layer (필터링된 데이터 사용)
+  // Calculate statistics for active layer
   const statistics = useMemo(() => {
     const activeDataLayer = activeLayers?.data;
 
@@ -90,8 +80,11 @@ function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLaye
     }
 
     const features = filteredLayerData[activeDataLayer].features;
-    console.log(`🔍 Sidebar: Processing ${features.length} features (filtered)`);
-    console.log('📍 Sidebar: Sample feature properties:', features[0]?.properties);
+    console.log(`🔍 Sidebar: Processing ${features.length} features`);
+
+    if (features.length > 0) {
+      console.log('📋 Sample feature properties:', features[0]?.properties);
+    }
 
     const total = calculateTotal(features, layer.field);
     const regionData = aggregateByRegion(features, layer.field);
@@ -101,7 +94,7 @@ function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLaye
       total,
       regionCount: Object.keys(regionData).length,
       topRegions: topRegions.map(r => ({ name: r.name, total: r.total })),
-      selectedArea: selectedRegion.admdong || '전체'
+      selectedArea: selectedRegion.signgu || '전체'
     });
 
     return {
@@ -110,7 +103,7 @@ function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLaye
       topRegions,
       featureCount: features.length
     };
-  }, [activeLayers?.data, filteredLayerData, selectedRegion]);
+  }, [activeLayers?.data, filteredLayerData, selectedRegion, layers]);
 
   return (
     <div className="sidebar">
@@ -128,7 +121,7 @@ function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLaye
           <select
             id="signgu-select"
             value={selectedRegion.signgu || ''}
-            onChange={(e) => onRegionChange(e.target.value, null)}
+            onChange={(e) => onRegionChange(e.target.value || null)}
             className="select-dropdown"
           >
             <option value="">전체</option>
@@ -138,33 +131,15 @@ function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLaye
           </select>
         </div>
 
-        {/* 읍면동 드롭다운 */}
-        {selectedRegion.signgu && (
-          <div className="region-select">
-            <label htmlFor="admdong-select">읍/면/동</label>
-            <select
-              id="admdong-select"
-              value={selectedRegion.admdong || ''}
-              onChange={(e) => onRegionChange(selectedRegion.signgu, e.target.value)}
-              className="select-dropdown"
-            >
-              <option value="">전체</option>
-              {admdongList.map(admdong => (
-                <option key={admdong} value={admdong}>{admdong}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <h2 style={{ marginTop: '20px' }}>레이어 선택</h2>
 
-        {/* 읍면동 경계 토글 */}
+        {/* 시군구 경계 토글 */}
         <div className="boundary-toggle">
           <button
             className={`layer-button ${activeLayers?.boundary ? 'active' : ''}`}
             onClick={() => onLayerChange('boundary')}
           >
-            <span className="layer-name">📍 읍면동 경계</span>
+            <span className="layer-name">시군구 경계</span>
             {boundaryData && (
               <span className="layer-count">
                 ({boundaryData.features?.length || 0})
@@ -199,41 +174,43 @@ function Sidebar({ layerData, boundaryData, activeLayers, selectedRegion, onLaye
         <div className="statistics">
           <h2>통계</h2>
 
-          {selectedRegion.admdong && (
+          {selectedRegion.signgu && (
             <div className="selected-region-info">
-              <strong>📍 {selectedRegion.admdong}</strong> ({selectedRegion.signgu})
+              <strong>{selectedRegion.signgu}</strong>
             </div>
           )}
 
           <div className="stat-card total">
             <div className="stat-label">
-              {selectedRegion.admdong ? '' : '총 '}{layers.find(l => l.id === activeLayers?.data)?.name}
+              {selectedRegion.signgu ? '' : '총 '}{layers.find(l => l.id === activeLayers?.data)?.name}
             </div>
             <div className="stat-value">
               {formatNumber(statistics.total, 0)}
               <span className="stat-unit"> {statistics.unit}</span>
             </div>
             <div className="stat-meta">
-              {selectedRegion.admdong ? '선택 지역' : `총 ${statistics.featureCount}개 지역`}
+              {selectedRegion.signgu ? '선택 지역' : `총 ${statistics.featureCount}개 시군구`}
             </div>
           </div>
 
-          <div className="top-regions">
-            <h3>상위 5개 시군</h3>
-            <div className="regions-list">
-              {statistics.topRegions.map((region, index) => (
-                <div key={region.name} className="region-item">
-                  <div className="region-rank">{index + 1}</div>
-                  <div className="region-info">
-                    <div className="region-name">{region.name}</div>
-                    <div className="region-value">
-                      {formatNumber(region.total, 0)} {statistics.unit}
+          {!selectedRegion.signgu && statistics.topRegions.length > 0 && (
+            <div className="top-regions">
+              <h3>상위 5개 시군구</h3>
+              <div className="regions-list">
+                {statistics.topRegions.map((region, index) => (
+                  <div key={region.name} className="region-item">
+                    <div className="region-rank">{index + 1}</div>
+                    <div className="region-info">
+                      <div className="region-name">{region.name}</div>
+                      <div className="region-value">
+                        {formatNumber(region.total, 0)} {statistics.unit}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 

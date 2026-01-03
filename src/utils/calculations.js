@@ -10,16 +10,19 @@ export const calculateNetBalance = (storage = 0, absorption = 0, emission = 0) =
 };
 
 /**
- * Aggregate carbon data by region (sgg_nm)
+ * Aggregate carbon data by region (signgu_nm)
  * @param {Array} features - GeoJSON features
- * @param {string} valueField - Field name to aggregate (e.g., 'cbn_strgat', 'cbn_abpvl')
+ * @param {string} valueField - Field name to aggregate
  * @returns {Object} Aggregated data by region
  */
 export const aggregateByRegion = (features, valueField) => {
   const regionData = {};
 
   features.forEach(feature => {
-    const regionName = feature.properties.sgg_nm || feature.properties.SGG_NM || 'Unknown';
+    const regionName = feature.properties.signgu_nm ||
+                       feature.properties.sgg_nm ||
+                       feature.properties.SGG_NM ||
+                       'Unknown';
     const value = parseFloat(feature.properties[valueField]) || 0;
 
     if (!regionData[regionName]) {

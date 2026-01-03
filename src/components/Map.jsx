@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -21,7 +21,7 @@ function FitBounds({ data, selectedBoundary }) {
   const map = useMap();
 
   useEffect(() => {
-    // 선택된 읍면동이 있으면 그 경계로 줌
+    // 선택된 시군구가 있으면 그 경계로 줌
     if (selectedBoundary && selectedBoundary.geometry) {
       const geoJsonLayer = L.geoJSON(selectedBoundary);
       const bounds = geoJsonLayer.getBounds();
@@ -51,23 +51,40 @@ function Map({ layerData, boundaryData, activeLayers, selectedRegion, onFeatureC
   const center = [37.4138, 127.5183]; // Gyeonggi-do center
   const zoom = 9;
 
-  // 선택된 읍면동 경계 찾기
+  // 선택된 시군구 경계 찾기
   const selectedBoundary = boundaryData?.features?.find(
-    feature => feature.properties.admdong_nm === selectedRegion.admdong &&
-               feature.properties.signgu_nm === selectedRegion.signgu
+    feature => feature.properties.signgu_nm === selectedRegion.signgu
   );
 
-  // 경계 스타일 (선택된 읍면동은 강조)
+  // 선택된 시군구의 데이터만 필터링
+  const filteredLayerData = useMemo(() => {
+    if (!selectedRegion.signgu || !activeLayers.data || !layerData[activeLayers.data]) {
+      return null;
+    }
+
+    const filtered = layerData[activeLayers.data].features.filter(feature => {
+      const featureSgg = feature.properties.signgu_nm ||
+                         feature.properties.sgg_nm ||
+                         feature.properties.SGG_NM;
+      return featureSgg === selectedRegion.signgu;
+    });
+
+    return {
+      type: 'FeatureCollection',
+      features: filtered
+    };
+  }, [layerData, activeLayers.data, selectedRegion.signgu]);
+
+  // 경계 스타일 (선택된 시군구는 강조)
   const getBoundaryStyle = (feature) => {
-    const isSelected = selectedRegion.admdong &&
-                      feature.properties.admdong_nm === selectedRegion.admdong &&
+    const isSelected = selectedRegion.signgu &&
                       feature.properties.signgu_nm === selectedRegion.signgu;
 
     return {
       fillColor: isSelected ? '#74c69d' : 'transparent',
-      fillOpacity: isSelected ? 0.2 : 0,
-      weight: isSelected ? 3 : 2,
-      opacity: isSelected ? 1 : 0.8,
+      fillOpacity: isSelected ? 0.15 : 0,
+      weight: isSelected ? 3 : 1.5,
+      opacity: isSelected ? 1 : 0.6,
       color: isSelected ? '#1b4332' : '#2d6a4f'
     };
   };
@@ -75,8 +92,8 @@ function Map({ layerData, boundaryData, activeLayers, selectedRegion, onFeatureC
   // Get style for features based on layer type
   const getDataStyle = (feature, layerType) => {
     const baseStyle = {
-      fillOpacity: 0.6,
-      weight: 1,
+      fillOpacity: 0.7,
+      weight: 2,
       opacity: 1,
       color: '#fff'
     };
@@ -100,23 +117,24 @@ function Map({ layerData, boundaryData, activeLayers, selectedRegion, onFeatureC
     layer.on({
       mouseover: (e) => {
         const layer = e.target;
+        const isSelected = selectedRegion.signgu &&
+                          feature.properties.signgu_nm === selectedRegion.signgu;
         layer.setStyle({
           weight: 3,
-          color: '#40916c'
+          color: isSelected ? '#1b4332' : '#40916c',
+          fillOpacity: isSelected ? 0.25 : 0.1,
+          fillColor: '#74c69d'
         });
       },
       mouseout: (e) => {
         const layer = e.target;
-        layer.setStyle({
-          weight: 2,
-          color: '#2d6a4f'
-        });
+        layer.setStyle(getBoundaryStyle(feature));
       }
     });
 
-    // Bind tooltip - 읍면동명 표시
-    if (feature.properties && feature.properties.admdong_nm) {
-      layer.bindTooltip(`${feature.properties.admdong_nm} (${feature.properties.signgu_nm})`, {
+    // Bind tooltip - 시군구명 표시
+    if (feature.properties && feature.properties.signgu_nm) {
+      layer.bindTooltip(feature.properties.signgu_nm, {
         permanent: false,
         direction: 'top',
         className: 'boundary-tooltip'
@@ -135,22 +153,22 @@ function Map({ layerData, boundaryData, activeLayers, selectedRegion, onFeatureC
       mouseover: (e) => {
         const layer = e.target;
         layer.setStyle({
-          weight: 2,
-          fillOpacity: 0.8
+          weight: 3,
+          fillOpacity: 0.85
         });
       },
       mouseout: (e) => {
         const layer = e.target;
         layer.setStyle({
-          weight: 1,
-          fillOpacity: 0.6
+          weight: 2,
+          fillOpacity: 0.7
         });
       }
     });
 
     // Bind tooltip
     if (feature.properties) {
-      const regionName = feature.properties.sgg_nm || feature.properties.SGG_NM || 'Unknown';
+      const regionName = feature.properties.signgu_nm || feature.properties.sgg_nm || feature.properties.SGG_NM || 'Unknown';
       layer.bindTooltip(regionName, {
         permanent: false,
         direction: 'top'
@@ -171,11 +189,11 @@ function Map({ layerData, boundaryData, activeLayers, selectedRegion, onFeatureC
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* 읍면동 경계 레이어 - 항상 먼저 렌더링 (뒤쪽) */}
+        {/* 시군구 경계 레이어 - 항상 먼저 렌더링 (뒤쪽) */}
         {activeLayers.boundary && boundaryData && boundaryData.features && (
           <>
             <GeoJSON
-              key={`boundary-${boundaryData.features.length}-${selectedRegion.admdong || 'all'}`}
+              key={`boundary-${boundaryData.features.length}-${selectedRegion.signgu || 'all'}`}
               data={boundaryData}
               style={(feature) => getBoundaryStyle(feature)}
               onEachFeature={onEachBoundary}
@@ -184,11 +202,11 @@ function Map({ layerData, boundaryData, activeLayers, selectedRegion, onFeatureC
           </>
         )}
 
-        {/* WFS 데이터 레이어 - 위에 렌더링 (앞쪽) */}
-        {activeLayers.data && layerData[activeLayers.data] && layerData[activeLayers.data].features && (
+        {/* 선택된 시군구의 데이터 레이어만 표시 */}
+        {activeLayers.data && selectedRegion.signgu && filteredLayerData && filteredLayerData.features.length > 0 && (
           <GeoJSON
-            key={`data-${activeLayers.data}-${layerData[activeLayers.data].features.length}`}
-            data={layerData[activeLayers.data]}
+            key={`data-${activeLayers.data}-${selectedRegion.signgu}`}
+            data={filteredLayerData}
             style={(feature) => getDataStyle(feature, activeLayers.data)}
             onEachFeature={(feature, layer) => onEachDataFeature(feature, layer, activeLayers.data)}
           />
